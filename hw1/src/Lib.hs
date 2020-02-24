@@ -1,6 +1,6 @@
 module Lib
-       ( plusTwo
-       ) where
+  ( plusTwo
+  ) where
 
 plusTwo :: [Int] -> [Int]
-plusTwo = map (+2)
+plusTwo = map (+ 2)

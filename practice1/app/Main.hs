@@ -27,6 +27,7 @@ main = interact solve
 
 --printMStr :: String
 --printMStr = print "Hello"
+
 bSort' :: (Ord a) => [a] -> [a]
 bSort' [x] =           [x]
 bSort' (x1:x2:xs)
