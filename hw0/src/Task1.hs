@@ -6,15 +6,24 @@ module Task1
   , eitherAssoc
   ) where
 
--- Заселить следующие типы (формально undefined тоже считается заселением типа (причем любого), но в решении ожидается что-то отличное от undefined):
-
 distributivity :: Either a (b, c) -> (Either a b, Either a c)
-distributivity x = (Left x, Left x)
+distributivity (Left a)       = (Left a, Left a)
+distributivity (Right (b, c)) = (Right b, Right c)
 
 associator :: (a, (b, c)) -> ((a, b), c)
-associator = undefined
+associator (a, (b, c)) = ((a, b), c)
 
 type (<->) a b = (a -> b, b -> a)
 
 eitherAssoc :: Either a (Either b c) <-> Either (Either a b) c
-eitherAssoc = undefined
+eitherAssoc = (leftEitherAssoc, rightEitherAssoc)
+
+leftEitherAssoc :: Either a (Either b c) -> Either (Either a b) c
+leftEitherAssoc (Left a)          = Left (Left a)
+leftEitherAssoc (Right (Left b))  = Left (Right b)
+leftEitherAssoc (Right (Right c)) = Right c
+
+rightEitherAssoc :: Either (Either a b) c -> Either a (Either b c)
+rightEitherAssoc (Left (Left a))  = (Left a)
+rightEitherAssoc (Left (Right b)) = (Right (Left b))
+rightEitherAssoc (Right c)        = (Right (Right c))

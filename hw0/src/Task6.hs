@@ -1,30 +1,21 @@
 module Task6
-  ( distributivity
+  ( x
+  , y
   ) where
 
 import Data.Maybe (mapMaybe)
+import Task1 (distributivity)
 
--- Определить слабую головную нормальную форму:
-distributivity (Left ("harold" ++ " hide " ++ "the " ++ "pain"))
-
-null $ mapMaybe foo "pole chudes ochen' chudesno"
-
--- где
 foo :: Char -> Maybe Double
 foo char =
   case char == 'o' of
-    True -> Just $ exp pi
+    True  -> Just $ exp pi
     False -> Nothing
 
--- not actually, but good enough for this task
--- null :: [a] -> Bool
-null [] = True
-null _ = False
+-- WHNF "x = (Left ("harold" ++ " hide " ++ "the " ++ "pain"), Left ("harold" ++ " hide " ++ "the " ++ "pain"))", because until call field string wouldn't concat, but no reductions.
+x :: (Either String a, Either String b)
+x = distributivity (Left ("harold" ++ " hide " ++ "the " ++ "pain"))
 
-mapMaybe :: (a -> Maybe b) -> [a] -> [b]
-mapMaybe _ [] = []
-mapMaybe f (x:xs) =
-  let rs = mapMaybe f xs
-   in case f x of
-        Nothing -> rs
-        Just r -> r : rs
+-- WHNF "y = False"
+y :: Bool
+y = null $ mapMaybe foo "pole chudes ochen' chudesno"

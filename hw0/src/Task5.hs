@@ -6,29 +6,24 @@ module Task5
   , churchToInt
   ) where
 
--- Как вы знаете из курса по теории типов, в лямбда-исчисления можно кодировать натуральные числа и арифметические операции над ними.
--- Определим тип нумералов Черча следующим образом:
 type Nat a = (a -> a) -> a -> a
 
--- Определим нуль:
+-- Church zero
 zero :: Nat a
-zero f x = x
+zero _ x = x
 
--- Определить функцию-последователя (он же инкремент):
+-- Church increment
 succChurch :: Nat a -> Nat a
-succChurch = undefined
+succChurch n f x = f $ n f x
 
--- Реализовать арифметические операции (сложение и умножение):
-churchPlus, churchMult :: Nat a -> Nat a -> Nat a
-churchPlus = undefined
+-- Plus two Church numbers
+churchPlus :: Nat a -> Nat a -> Nat a
+churchPlus x y f s = x f $ y f s
 
-churchMult = undefined
+-- Mult two Church numbers
+churchMult :: Nat a -> Nat a -> Nat a
+churchMult x y f = x $ y f
 
--- Реализовать функцию, которая по нумералу Черча сопоставляет обычное целое число:
+-- Convert Church number to Int
 churchToInt :: Nat Integer -> Integer
-churchToInt = undefined
--- Данная функция должна удовлетворять следующим равенствам:
--- churchToInt zero = 0
--- churchToInt (succChurch number) = 1 + churchToInt number
--- churchToInt (churchPlus m n) = churchToInt m + churchToInt n
--- churchToInt (churchMult m n) = churchToInt m * churchToInt n
+churchToInt x = x (+ 1) 0

@@ -6,23 +6,28 @@ module Task2
   , thirdNegElim
   ) where
 
--- Заселить среди данных типов те, которые возможно.
-
 import Data.Void (Void)
 
 type Neg a = a -> Void
 
+-- a -> (a -> Void) -> Void
 doubleNeg :: a -> Neg (Neg a)
-doubleNeg = undefined
+doubleNeg = \x f -> f x
 
+-- ((Either a (a -> Void)) -> Void) -> Void
 excludedNeg :: Neg (Neg (Either a (Neg a)))
-excludedNeg = undefined
+excludedNeg f = f (Right negeate)
+  where
+    negeate = \x -> f (Left x)
 
+-- Equivalent to double negation in ИИВ, so cannot deduce the type
 pierce :: ((a -> b) -> a) -> a
 pierce = undefined
 
+-- Cannot deduce the type for 10 axioms in ИИВ
 doubleNegElim :: Neg (Neg a) -> a
 doubleNegElim = undefined
 
+-- (((a -> Void) -> Void) -> Void) -> a -> Void
 thirdNegElim :: Neg (Neg (Neg a)) -> Neg a
-thirdNegElim = undefined
+thirdNegElim f = f . doubleNeg

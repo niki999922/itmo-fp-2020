@@ -6,21 +6,17 @@ module Task3
   , permutation
   ) where
 
--- Предположим у нас есть функция:
 s :: (a -> b -> c) -> (a -> b) -> a -> c
 s f g x = f x (g x)
 
--- Реализовать с помощью s и const следующие функции:
 composition :: (b -> c) -> (a -> b) -> a -> c
-composition f g = \x -> f $ g x
+composition = s (const s) const
 
--- (должна вести себя аналогично оператору (.) из стандартной библиотеки) ||| типо написал
 identity :: a -> a
-identity = undefined
+identity = s const const
 
--- (должна вести себя аналогично тождественной функции id, определенной в Prelude)
 contraction :: (a -> a -> b) -> a -> b
-contraction = undefined
+contraction = s s $ s const
 
 permutation :: (a -> b -> c) -> b -> a -> c
-permutation = undefined
+permutation = s (s (const (s (const s) const)) s) (const const)
