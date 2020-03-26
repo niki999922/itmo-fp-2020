@@ -6,9 +6,9 @@ description:         Task 1 for FP ITMO course
 homepage:            https://github.com/niki999922/fp-homework/tree/master/hw1#readme
 license:             MIT
 license-file:        LICENSE
-author:              Nikita
+author:              Nikita Kochetkov
 maintainer:          niki999922@yandex.ru
-copyright:           2020 Nikita
+copyright:           2020 Nikita Kochetkov
 
 category:            Web
 build-type:          Simple
@@ -18,7 +18,20 @@ tested-with:         GHC == 8.0.1
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
+  exposed-modules:     Block1, Block2, Block3, Block4, Block5, Block6, Tree
   ghc-options:         -Wall
-  build-depends:       base >= 4.9 && < 5
+  build-depends:       base >= 4.9 && < 5, mtl
   default-language:    Haskell2010
+
+test-suite HW1-tests
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , hw1
+                     , hspec
+                     , QuickCheck
+  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+  other-modules:       Block1Tests Block2Tests Block3Tests Block4Tests Block5Tests Block6Tests
+  default-language:    Haskell2010
+  build-tool-depends:  hspec-discover:hspec-discover

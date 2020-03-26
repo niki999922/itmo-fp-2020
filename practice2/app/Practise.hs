@@ -1,3 +1,13 @@
+{-# LANGUAGE DeriveFoldable    #-}  -- generates `foldr` and `foldMap`
+{-# LANGUAGE DeriveTraversable #-}  -- generates `traverse`
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ScopedTypeVariables       #-}  --for 7 task!
+{-# LANGUAGE TypeApplications       #-}   -- read @Int 7,        don't need me
+
+
 module Main
   ( main
   , smartReplicate
@@ -5,7 +15,13 @@ module Main
   , FName
   ) where
 
+-- {-# LANGUAGE DeriveFunctor     #-}  -- generates `fmap`
+
+data Tree a = Leaf | Node a (Tree a) (Tree a)
+    deriving (Functor, Foldable, Traversable)
+
 import Data.Char (isDigit, toLower)
+import Debug.Trace
 
 -- Задание 1
 -- Функция должна повторять каждый элемент столько раз, чему равен сам элемент.
@@ -65,25 +81,14 @@ Task 2
 -}
 newtype FName =
   FName String
-  deriving (Eq, Read, Show)
+  deriving (Read, Show)
+--   deriving (Eq, Read, Show)
+
+instance Eq FName where
+    a == b = a <= b && a >= b
 
 instance Ord FName where
-  (>) (FName x) (FName y) = y < x
-  (<=) (FName x) (FName y) = not $ y < x
-  (>=) (FName x) (FName y) = not $ x < y
-  min (FName x) (FName y) =
-    if (x <= y)
-      then (FName x)
-      else (FName y)
-  max (FName x) (FName y) =
-    if (x >= y)
-      then (FName x)
-      else (FName y)
-  compare (FName x) (FName y)
-    | x < y = LT
-    | x > y = GT
-    | otherwise = EQ
-  (<) (FName x) (FName y) = compareString intPrefixFirst intPrefixSecond
+  (FName x) < (FName y) = compareString
     where
       numberPrefix :: String -> String
       numberPrefix [] = []
@@ -96,8 +101,8 @@ instance Ord FName where
       intPrefixFirst = convertToInt ("0" ++ numberPrefix x)
       intPrefixSecond :: Integer
       intPrefixSecond = convertToInt ("0" ++ numberPrefix y)
-      compareString str1 str2 =
-        case (compare str1 str2) of
+      compareString =
+        case (compare intPrefixFirst intPrefixSecond) of
           LT -> True
           GT -> False
           EQ -> compatesuffix
@@ -107,7 +112,22 @@ instance Ord FName where
                   secondSuffix = drop (length $ numberPrefix y) y
                   compatesuffix :: Bool
                   compatesuffix =
-                    map toLower firstSuffix < map toLower secondSuffix
+                    (map toLower firstSuffix) < (map toLower secondSuffix)
+  (>) (FName x) (FName y) = not (x <= y)
+  (FName x) <= (FName y) = not $ y < x
+  (FName x) >= (FName y) = not $ x < y
+  min (FName x) (FName y) =
+    if (x <= y)
+      then (FName x)
+      else (FName y)
+  max (FName x) (FName y) =
+    if (x >= y)
+      then (FName x)
+      else (FName y)
+  compare (FName x) (FName y)
+    | x < y = LT
+    | x > y = GT
+    | otherwise = EQ
 
 -------------------------------------------
 -- Task 3
@@ -123,7 +143,6 @@ instance Ord FName where
 --
 -- > sumAndLog [8 -10] loop
 -- Nothing
-
 -- > sumAndLogD [8] (BoxD 2)
 -- Just 3.0
 --
@@ -133,10 +152,13 @@ instance Ord FName where
 -- return MayBe
 --
 --------------------------------------------
-newtype Box a = Box a -- not recursive and can have one constr
-data BoxD a = BoxD a -- recursive and can have BoxD a, BoxD BoxD a, BoxD BoxD BoxD a ...
--- it's rofl compiler, потому что будет бес конечно распоковывать loop и не посчитает даже сумму?
+newtype Box a =
+  Box a -- not recursive and can have one constr
 
+data BoxD a =
+  BoxD a -- recursive and can have BoxD a, BoxD BoxD a, BoxD BoxD BoxD a ...
+
+-- it's rofl compiler, потому что будет бес конечно распоковывать loop и не посчитает даже сумму?
 sumAndLog as (Box base) =
   let s = sum as
    in if s < 0
@@ -146,9 +168,59 @@ sumAndLog as (Box base) =
 sumAndLogD as (BoxD base) =
   let s = sum as
    in if s < 0
-        then Nothing
-        else Just (log s / log base)
+      then Nothing
+      else Just (log s / log base)
 
 loop = loop
 
 main = pure ()
+
+
+-- Functor
+infixl 4 <$>    
+(<$>) :: Functor f => (a -> b) -> f a -> f b 
+(<$>) = fmap
+
+-- Applicative
+infixl 4 <$>    
+(<*>) 
+
+
+-- Monad
+-- return   in box
+-- bind    >>=   from box 1 to box 2
+-- with unboxing 1 как если бы мы перекладывали слева направо аргументыф
+
+
+-- (<=<) :: Monad m => (b -> m c) -> (a -> m b) -> a -> m c     like  a . b
+-- (>=>) :: Monad m => (a -> m b) -> (b -> m c) -> a -> m c
+
+
+-- m >>= (f >=> g) ≡ m >>= f >>= g
+-- m >>= (f <=< g) ≡ m >>= g >>= f
+
+-- mkUser :: String -> Maybe Username
+-- mkUser name = stripUsername name >>= validateLength 15 >>= Just . Username
+-- mkUser      = stripUsername      >=> validateLength 15 >=> Just . Username
+
+
+
+
+
+-- Monad zen
+-- (>>) :: Monad m => m a -> m b -> m b  -- then
+-- m >> k = m >>= \_ -> k
+-- ghci> Just 3 >> Just 5
+-- Just 5
+
+
+
+-- Join monad
+-- join :: Monad m => m (m a) -> m a
+
+
+-- Monad.contral
+-- liftM :: Monad m => (a -> b) -> m a -> m b
+
+
+ 
