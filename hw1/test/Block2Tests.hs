@@ -19,6 +19,11 @@ treeFoldableTests =
     it "testing joinWith x . splitOn x ≡ id" $ do
       let text = "yandex verstka egg"
       ((joinWith ' ' . splitOn ' ') text) `shouldBe` "yandex verstka egg"
+    it "testing joinWith x . splitOn x ≡ id" $ do
+      let text =
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud"
+      ((joinWith '-' . splitOn ' ') text) `shouldBe`
+        "Lorem-ipsum-dolor-sit-amet,-consectetur-adipiscing-elit,-sed-do-eiusmod-tempor-incididunt-ut-labore-et-dolore-magna-aliqua.-Ut-enim-ad-minim-veniam,-quis-nostrud"
   where
     checkSort :: [Int] -> Bool
     checkSort []   = True

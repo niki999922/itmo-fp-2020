@@ -27,11 +27,12 @@ natTests =
     let six = two + two + two
     it "2 + 6 = 8" $ do (show $ two + six) `shouldBe` "8"
     it "2 * 6 = 12" $ do (show $ two * six) `shouldBe` "12"
+    it "2 * 6 * 6 = 72" $ do (show $ two * six * six) `shouldBe` "72"
     it "6 - 2 = 4" $ do (show $ six - two) `shouldBe` "4"
     it "6 == 6" $ do six `shouldBe` six
     it "2 < 6 = true" $ do (two < six) `shouldBe` True
-    it "2 < 6 = true" $ do (two < six) `shouldBe` True
     it "even 2 = true" $ do (isEven two) `shouldBe` True
+    it "even 1 = true" $ do (isEven (Super Zero)) `shouldBe` False
     it "6 mod 2 = 3" $ do (show $ six `modNat` two) `shouldBe` "0"
     it "6 div 2 = 0" $ do (show $ six `divNat` two) `shouldBe` "3"
     it "toNatural from 2 to Nat 2" $ do (toNatural 2) `shouldBe` two
