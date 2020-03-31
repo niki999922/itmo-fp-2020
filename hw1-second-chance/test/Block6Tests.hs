@@ -2,7 +2,8 @@ module Block6Tests
   ( copyPasteTests
   ) where
 
-import Block6 (Parser (..), element, eof, ok, satisfy, stream)
+import Block6 (Parser (..), element, eof, numberParser, ok, pspParser, satisfy, stream)
+import Control.Applicative (Alternative (..))
 import Test.Hspec (SpecWith, describe, it, shouldBe)
 
 copyPasteTests :: SpecWith ()
@@ -22,3 +23,18 @@ copyPasteTests =
       (runParser (stream "3") text) `shouldBe` (Nothing)
     it "testing stream Just" $ do
       (runParser (stream "1") text) `shouldBe` (Just ("1", "1133 text 2 mama"))
+    it "testing many element" $ do
+      (runParser (many $ element '1') text) `shouldBe`
+        (Just ("111", "33 text 2 mama"))
+    it "testing parsing psp" $ do
+      (runParser pspParser "(())()") `shouldBe` (Just ((), ""))
+    it "testing parsing broken psp" $ do
+      (runParser pspParser ")()(") `shouldBe` (Nothing)
+    it "testing parsing number \"+123 a\"" $ do
+      (runParser numberParser "+123 a") `shouldBe` (Just ("+123", " a"))
+    it "testing parsing number \"-123 a\"" $ do
+      (runParser numberParser "-123 a") `shouldBe` (Just ("-123", " a"))
+    it "testing parsing number \"123 a\"" $ do
+      (runParser numberParser "123 a") `shouldBe` (Just ("+123", " a"))
+    it "testing parsing number \"00123 a\"" $ do
+      (runParser numberParser "00123 a") `shouldBe` (Just ("+00123", " a"))

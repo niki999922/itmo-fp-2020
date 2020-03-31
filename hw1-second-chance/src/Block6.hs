@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Block6
   ( Parser(..)
   , ok
@@ -5,10 +7,13 @@ module Block6
   , satisfy
   , element
   , stream
+  , pspParser
+  , numberParser
   ) where
 
-import Control.Applicative (Alternative, empty, (<|>))
+import Control.Applicative (Alternative (..))
 import Control.Arrow (first)
+import Data.Char
 
 data Parser s a =
   Parser
@@ -49,16 +54,28 @@ eof =
 
 satisfy :: (s -> Bool) -> Parser s s
 satisfy p =
-  Parser $ \inp ->
-    case inp of
-      [] -> Nothing
-      (x:xs) ->
-        if p x
-          then return (x, xs)
-          else Nothing
+  Parser $ \case
+    [] -> Nothing
+    (x:xs) ->
+      if p x
+        then return (x, xs)
+        else Nothing
 
 element :: Eq s => s -> Parser s s
 element s = satisfy (== s)
 
 stream :: Eq s => [s] -> Parser s [s]
 stream s = traverse element s
+
+digit :: Parser Char Char
+digit = satisfy isDigit
+
+pspParser :: Parser Char ()
+pspParser = psp *> eof
+  where
+    psp = (element '(' *> psp *> element ')' *> psp) <|> ok
+
+numberParser :: Parser Char String
+numberParser =
+  (\x y -> x : y) <$> (element '+' <|> element '-' <|> (fmap (\_ -> '+') ok)) <*>
+  (some digit)
