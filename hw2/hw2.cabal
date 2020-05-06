@@ -18,15 +18,7 @@ tested-with:         GHC == 8.0.1
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
-  ghc-options:         -Wall
-  build-depends:       base >= 4.9 && < 5
-  default-language:    Haskell2010
-
-executable hw2
-  hs-source-dirs:      app
-  main-is:             Main.hs
-  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , hw2
+  exposed-modules:     File, Directory, Main, WorkingEnvironment, Parser
+  -- ghc-options:         -Wall
+  build-depends:       base >= 4.9 && < 5, mtl, transformers, directory, time, filepath, optparse-applicative, text, split
   default-language:    Haskell2010
