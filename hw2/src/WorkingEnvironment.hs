@@ -40,9 +40,6 @@ class WorkingEnvironmentable t where
     weCommandLS :: FilePath -> StateT t (ExceptT String IO) String
 
     weGetCurrentDirectoryCMD :: t -> String
-    weSaveWorkingEnvironment :: StateT t (ExceptT String IO) ()
-    -- weIsFileExist :: 
-    -- weIsDirectoryExist ::
 
 
 instance WorkingEnvironmentable WorkingEnvironment where
@@ -171,10 +168,6 @@ instance WorkingEnvironmentable WorkingEnvironment where
                     return $ intercalate "\n" $ (map dGetName $ dSubDirectories needDirectory) ++ (map fGetName $ dFiles needDirectory)
                 Nothing ->
                     lift $ throwE $ "Can't find directory for printing condition with this path: \"" ++ (show pathList) ++ "\""
-    weSaveWorkingEnvironment = undefined
-            -- we@(WorkingEnvironment {..}) <- get
-            -- we
-            -- let (Just currentWorkDirectory) = weGetCurrentWorkAround weWorkAround weCurrentPath
             
 
 weGetCurrentWorkAround :: Directory -> [FilePath] -> Maybe Directory

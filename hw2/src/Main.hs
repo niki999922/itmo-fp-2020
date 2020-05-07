@@ -9,7 +9,7 @@ import Debug.Trace
 import Data.List
 import qualified Data.Text as DT
 import Data.Time.Clock
-import System.Directory
+import System.Directory 
 import System.FilePath.Posix
 import Control.Monad.Trans.Reader 
 import Control.Monad.Trans.Writer
@@ -18,6 +18,7 @@ import Control.Monad.Trans.Except
 import Control.Monad.Trans (lift)
 import Control.Monad
 import Data.List.Split
+-- import Filesystem ( removeTree )
 
 import File
 import Directory
@@ -72,12 +73,15 @@ mainq = do
 mainr :: IO WorkingEnvironment
 mainr = do 
     -- putStrLn " "
-    let path = "/Users/nikita/itmo-fp-2020/hw2/timeDir"
+    let path = "/Users/nikita/itmo-fp-2020/hw2/TEST_DIR/timeDir/BigHouse/flat1"
+    -- let path = "/Users/nikita/itmo-fp-2020/hw2/TEST_DIR/timeDir"
     -- curTime <- getCurrentTime
     state <- readDirectoriesState path
     let workingState = WorkingEnvironment path [] state
     putStrLn " \n\n\n\nStart: \n"
     stateNew <- cycleRead workingState
+    _ <- removeDirectoryRecursive $ weStartPath stateNew
+    _ <- dSaveDirectory $ weWorkAround stateNew
     putStrLn "\n---------\n\n\n\n"
     return stateNew
     -- print workingState
@@ -118,6 +122,7 @@ mainr = do
     
     -- return ws1
 
+-- writeFile path "text"
 
 cycleRead :: WorkingEnvironment -> IO WorkingEnvironment
 cycleRead we = do
@@ -160,8 +165,8 @@ cycleRead we = do
         (CommandHelp, _) -> do 
           putStrLn "Please write help all in ALL, NIKITA!!!"
           cycleRead we
+        (CommandEmpty, _) -> cycleRead we
         (CommandExit, _) -> return we
-        
     Nothing -> do
       putStrLn "Unknown command, HERE ----HELP"
       cycleRead we

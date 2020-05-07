@@ -37,6 +37,7 @@ class Fileble f where
     fGetPermissions :: f -> Permissions
     fGetType :: f -> String
     fShowPermissons :: f -> String
+    fSaveFile :: f -> IO ()
 
 
 instance Fileble File where
@@ -57,6 +58,10 @@ instance Fileble File where
             isWritable perm = if (writable perm) then "w" else ""
             isExecutable perm = if (executable perm) then "e" else ""
             isSearchable perm = if (searchable perm) then "s" else ""
+    fSaveFile f@File{..} = do  
+            _ <- writeFile fPath fContent
+            _ <- setModificationTime fPath fEditTime
+            return ()
             
 readFile' :: FilePath -> IO File
 readFile' currentPath = do 

@@ -23,6 +23,8 @@ data Command = CommandCD FilePath
             | CommandLS FilePath
             | CommandExit
             | CommandHelp
+            | CommandEmpty 
+            deriving (Show)
 
 data Parser s a =
   Parser
@@ -92,7 +94,8 @@ commandParser = parseCD <|>
                 parseDir <|>
                 parseLS <|>
                 parseExit <|>
-                parseHelp
+                parseHelp <|>
+                parseEmpty
 
 commandDigit :: Parser Char Char
 commandDigit = digit
@@ -101,7 +104,7 @@ commandChar :: Parser Char Char
 commandChar = satisfy isLetter
 
 commandOtherCharacters :: Parser Char Char
-commandOtherCharacters = satisfy (\x -> (x == '.') || (x == '/') || (x == '_') || (x == '-') || (x == '!'))
+commandOtherCharacters = satisfy (\x -> (x == '.') || (x == '/') || (x == '_') || (x == '-') || (x == '!') || (x == '\''))
 
 parseCD :: Parser Char Command 
 parseCD = CommandCD <$> (stream "cd" *> (many $ element ' ') *> parseString) <* (many $ element ' ') <* eof
@@ -137,10 +140,16 @@ parseString :: Parser Char String
 parseString = (some (commandDigit <|> commandChar <|> commandOtherCharacters)) <|> (fmap (\x -> "") ok)
 
 parseStringInQuotes :: Parser Char String
-parseStringInQuotes = (element '"' *> (some (commandDigit <|> commandChar <|> commandOtherCharacters)) <* element '"')  <|> (fmap (\x -> "") ok)
+parseStringInQuotes = (element '"' *> (some (commandDigit <|> commandChar <|> commandOtherCharacters <|> element ' ')) <* element '"')  <|> (fmap (\x -> "") ok)
 
 parseExit :: Parser Char Command 
 parseExit = CommandExit <$ stream "exit" <* (many $ element ' ') <* eof
 
 parseHelp :: Parser Char Command 
 parseHelp = CommandHelp <$ stream "help" <* (many $ element ' ') <* eof
+
+parseEmpty :: Parser Char Command
+parseEmpty = CommandEmpty <$ eof
+
+-- cd BigHouse
+-- write-file HouseHolder.txt "It's VERY SMALL HOUSE"

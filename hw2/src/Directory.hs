@@ -39,6 +39,7 @@ class Directorible d where
     dDeleteFile :: d -> String -> d
     dDeleteSubDirectory :: d -> String -> d
     dEditFileContext :: d -> String -> String -> UTCTime -> d
+    dSaveDirectory :: d -> IO ()
 
 
 instance Show Directory where
@@ -82,7 +83,10 @@ instance Directorible Directory where
         let otherFiles = filter (\x -> (fGetName x) /= name) dFiles
         let editedFile = head $ filter (\x -> (fGetName x) == name) dFiles
         d {dFiles = otherFiles ++ [editedFile { fContent = text, fEditTime = time, fEdited = True}]}
-    
+    dSaveDirectory d@Directory{..} = do 
+        mapM_ (fSaveFile) dFiles
+        mapM_ (\x -> createDirectory $ dGetPath x) dSubDirectories 
+        mapM_ (dSaveDirectory) dSubDirectories
 
     
 
