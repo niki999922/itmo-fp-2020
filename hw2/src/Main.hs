@@ -73,16 +73,19 @@ mainq = do
 mainr :: IO WorkingEnvironment
 mainr = do 
     -- putStrLn " "
-    let path = "/Users/nikita/itmo-fp-2020/hw2/TEST_DIR/timeDir/BigHouse/flat1"
-    -- let path = "/Users/nikita/itmo-fp-2020/hw2/TEST_DIR/timeDir"
+    -- let path = "/Users/nikita/itmo-fp-2020/hw2/TEST_DIR/timeDir/BigHouse/flat1"
+    -- createDirectory path
+    let path = "/Users/nikita/itmo-fp-2020/hw2/TEST_DIR/timeDir"
     -- curTime <- getCurrentTime
     state <- readDirectoriesState path
     let workingState = WorkingEnvironment path [] state
-    putStrLn " \n\n\n\nStart: \n"
+    putStrLn "\n---------\nXXXXXXXXX\n---------\n"
+    -- putStrLn " \n\n\n\nStart: \n"
     stateNew <- cycleRead workingState
     _ <- removeDirectoryRecursive $ weStartPath stateNew
+    _ <- createDirectory $ weStartPath stateNew
     _ <- dSaveDirectory $ weWorkAround stateNew
-    putStrLn "\n---------\n\n\n\n"
+    putStrLn "\n---------\nXXXXXXXXX\n---------\n"
     return stateNew
     -- print workingState
     -- putStrLn " "
@@ -162,17 +165,56 @@ cycleRead we = do
         (CommandLS path, _) -> do
           newFs <- unpackStateExceptWithResult we $ weCommandLS path
           cycleRead newFs 
+        (CommandCVSInit, _) -> do
+          curTime <- getCurrentTime
+          newFs <- unpackStateExcept we $ weCommandCVSInit curTime
+          cycleRead newFs 
+        (CommandCVSAdd path, _) -> do
+          -- putStrLn "________________________Running CommandCVSAdd________________________"
+          curTime <- getCurrentTime
+          -- putStrLn "_____________________________________BEFORE_____________________________________"
+          -- print we
+          -- putStrLn "_____________________________________BEFORE_____________________________________"
+          
+          newFs <- unpackStateExcept we $ weCommandCVSAdd path curTime
+          -- putStrLn "_____________________________________AFTER______________________________________"
+          -- print newFs
+          -- putStrLn "_____________________________________AFTER______________________________________"
+          cycleRead newFs 
+        (CommandCVSUpdate path text, _) -> do 
+          curTime <- getCurrentTime
+          newFs <- unpackStateExcept we $ weCommandCVSUpdate path text curTime
+          cycleRead newFs   
+        (CommandCVSHistory path, _) -> do 
+          newFs <- unpackStateExceptWithResult we $ weCommandCVSHistory path
+          cycleRead newFs   
+        (CommandCVSCat path version, _) -> do 
+          newFs <- unpackStateExceptWithResult we $ weCommandCVSCat path version
+          cycleRead newFs
+        (CommandCVSMergeRevs path version1 version2 strategy, _) -> do 
+          curTime <- getCurrentTime
+          newFs <- unpackStateExcept we $ weCommandCVSMergeRevs path version1 version2 strategy curTime
+          cycleRead newFs   
+        (CommandCVSDeleteVersion path version, _) -> do 
+          newFs <- unpackStateExcept we $ weCommandCVSDeleteVersion path version
+          cycleRead newFs   
+        (CommandCVSRemove path, _) -> do 
+          newFs <- unpackStateExcept we $ weCommandCVSRemove path
+          cycleRead newFs   
+        (CommandCVSShowEverything, _) -> do 
+          newFs <- unpackStateExceptWithResult we $ weCommandCVSShowEverything
+          cycleRead newFs   
         (CommandHelp, _) -> do 
-          putStrLn "Please write help all in ALL, NIKITA!!!"
+          putStrLn helpText
           cycleRead we
         (CommandEmpty, _) -> cycleRead we
         (CommandExit, _) -> return we
     Nothing -> do
-      putStrLn "Unknown command, HERE ----HELP"
+      putStrLn "Unknown command, for more information use \"help\""
       cycleRead we
 
-
-unpackStateExcept :: WorkingEnvironment -> StateT WorkingEnvironment (ExceptT String IO) () -> IO WorkingEnvironment
+-- cvs-cat BigHouse/flat1/Flat.txt
+unpackStateExcept :: WorkingEnvironment -> StateWE WorkingEnvironment IO () -> IO WorkingEnvironment
 unpackStateExcept we st = do
   exceptResult <- runExceptT $ runStateT st we
   case exceptResult of
@@ -181,7 +223,7 @@ unpackStateExcept we st = do
       return we
     Right eatherResNewFs -> return $ snd eatherResNewFs
 
-unpackStateExceptWithResult :: WorkingEnvironment -> StateT WorkingEnvironment (ExceptT String IO) String -> IO WorkingEnvironment
+unpackStateExceptWithResult :: WorkingEnvironment -> StateWE WorkingEnvironment IO String -> IO WorkingEnvironment
 unpackStateExceptWithResult we st = do
   exceptResult <- runExceptT $ runStateT st we
   case exceptResult of
@@ -191,3 +233,30 @@ unpackStateExceptWithResult we st = do
     Right eatherResNewFs -> do
       putStrLn $ fst eatherResNewFs
       return $ snd eatherResNewFs
+
+
+helpText :: String
+helpText =  "cd <folder> -- перейти в директори\n" ++
+            "dir -- показать содержимое текущей директори\n" ++
+            "ls <folder> -- показать содержимое выбранной директори\n" ++
+            "create-folder \"folder-name\" -- создать директорию в текуще\n" ++
+            "cat <file> -- показать содержимое файл\n" ++
+            "create-file \"file-name\" -- создать пустой файл в текущей директори\n" ++
+            "remove <folder | file> -- удалить выборанную директорию или фай\n" ++
+            "write-file <file> \"text\" -- записать текст в фай\n" ++
+            "find-file \"file-name\" --  поиск файла в текущией директории и поддиректория\n" ++
+            "information <file> -- показать информацию о файл\n" ++
+            "information <folder> -- показать информацию о директори\n" ++
+            "cvs-init -- инициализация СКВ в текущей выбранной директори\n" ++
+            "cvs-add <file | folder> -- добавление файла или папки в СК\n" ++
+            "cvs-update <file> \"comment\" -- добавление изменений файла в СК\n" ++
+            "cvs-history <file> -- просмотр истории изменений файл\n" ++
+            "cvs-cat <file> \"index\" -- просмотр конкретной ревизии файл\n" ++
+            "cvs-merge-revs <file> \"index1\" \"index2\" \"left | right | both\" -\n" ++
+            "объединение ревизий файла по заданным индексам, left, right, both или interactiv\n" ++
+            "являются вариантами стратегий для обеъединени\n" ++
+            "cvs-delete-version <file> \"index\" -- удалить заданную версию файла из ревизи\n" ++
+            "cvs-remove <file> -- удалить файл из СК\n" ++
+            "cvs-show-everything -- показать общую историю изменени\n" ++
+            "help --  показать руководство по использовани\n" ++
+            "exit -- завершение работы программы"

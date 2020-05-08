@@ -21,10 +21,10 @@ data File = File {
     fPermissions :: Permissions,
     fEditTime :: UTCTime,
     fEdited :: Bool
-} deriving (Show, Eq)
+} deriving (Eq)
 
--- instance Show File where
-    -- show = fPath
+instance Show File where
+    show = fGetName 
 
 class Fileble f where
     fGetName :: f -> String
