@@ -1,84 +1,78 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecordWildCards #-}
-
 
 module File where
 
-import Debug.Trace
-import Data.List
+import Data.Maybe
 import qualified Data.Text as DT
 import Data.Time.Clock
 import System.Directory
 import System.FilePath.Posix
-import Control.Monad
-import Data.Maybe
 
-
+-- Contain file status storage
 data File = File {
-    fPath :: FilePath,
-    fContent :: String,
-    fPermissions :: Permissions,
-    fEditTime :: UTCTime,
-    fEdited :: Bool
+   fPath        :: FilePath
+  ,fContent     :: String
+  ,fPermissions :: Permissions
+  ,fEditTime    :: UTCTime
+  ,fEdited      :: Bool
 } deriving (Eq)
 
 instance Show File where
-    show = fGetName 
+  show = fGetName
 
 class Fileble f where
-    fGetName :: f -> String
-    fIsEdited :: f -> Bool
-    fGetContents :: f -> String
-    fGetPath :: f -> String
-    fGetInformation :: f -> String
-    fGetSize :: f -> Int 
-    fGetEditTime :: f -> UTCTime
-    fGetPermissions :: f -> Permissions
-    fGetType :: f -> String
-    fShowPermissons :: f -> String
-    fSaveFile :: f -> IO ()
-
+  fGetName         :: f -> String
+  fIsEdited        :: f -> Bool
+  fGetContents     :: f -> String
+  fGetPath         :: f -> String
+  fGetInformation  :: f -> String
+  fGetSize         :: f -> Int
+  fGetEditTime     :: f -> UTCTime
+  fGetPermissions  :: f -> Permissions
+  fGetType         :: f -> String
+  fShowPermissions :: f -> String
+  fSaveFile        :: f -> IO ()
 
 instance Fileble File where
-    fGetName = takeFileName . fPath
-    fIsEdited = fEdited
-    fGetContents = fContent
-    fGetPath = fPath
-    fGetInformation = (fromMaybe "Something was bad duo to count information") . showFileInformation
-    fGetSize = DT.length . DT.pack . fGetContents
-    fGetEditTime = fEditTime
-    fGetPermissions = fPermissions
-    fGetType = takeExtension . fGetPath
-    fShowPermissons f = (fromMaybe "Something was bad duo to gets permissons") $ do 
-        let perm = fGetPermissions f
-        Just ("\"" ++ isReadable perm ++ isWritable perm ++ isExecutable perm ++ isSearchable perm ++ "\"")
-        where
-            isReadable perm = if (readable perm) then "r" else ""
-            isWritable perm = if (writable perm) then "w" else ""
-            isExecutable perm = if (executable perm) then "e" else ""
-            isSearchable perm = if (searchable perm) then "s" else ""
-    fSaveFile f@File{..} = do  
-            _ <- writeFile fPath fContent
-            _ <- setModificationTime fPath fEditTime
-            return ()
-            
-readFile' :: FilePath -> IO File
-readFile' currentPath = do 
-    fileContent <- readFile currentPath
-    permission <- getPermissions currentPath
-    time <- getModificationTime currentPath
-    return $ File currentPath fileContent permission time False
+  fGetName = takeFileName . fPath
+  fIsEdited = fEdited
+  fGetContents = fContent
+  fGetPath = fPath
+  fGetInformation = (fromMaybe "Something was bad duo to count information") . showFileInformation
+  fGetSize = DT.length . DT.pack . fGetContents
+  fGetEditTime = fEditTime
+  fGetPermissions = fPermissions
+  fGetType = takeExtension . fGetPath
+  fShowPermissions f = (fromMaybe "Something was bad duo to gets permissons") $ do
+    let perm = fGetPermissions f
+    Just ("\"" ++ isReadable perm ++ isWritable perm ++ isExecutable perm ++ isSearchable perm ++ "\"")
+    where
+      isReadable perm = if (readable perm) then "r" else ""
+      isWritable perm = if (writable perm) then "w" else ""
+      isExecutable perm = if (executable perm) then "e" else ""
+      isSearchable perm = if (searchable perm) then "s" else ""
+  fSaveFile File{..} = do
+      _ <- writeFile fPath fContent
+      _ <- setModificationTime fPath fEditTime
+      return ()
 
-showFileInformation :: File -> Maybe String 
+readFile' :: FilePath -> IO File
+readFile' currentPath = do
+  fileContent <- readFile currentPath
+  permission <- getPermissions currentPath
+  time <- getModificationTime currentPath
+  return $ File currentPath fileContent permission time False
+
+showFileInformation :: File -> Maybe String
 showFileInformation file = do
-    let path = fGetPath file
-    let permissions = fShowPermissons file
-    let extension = takeExtension path
-    let date = fGetEditTime file 
-    let size = fGetSize file
-    return ("Path: \"" ++ path ++
-     "\"\nPermissions: " ++ permissions ++ 
-     "\nExtension: \"" ++ extension ++
-     "\"\nLast updated: " ++ show date ++
-     "\nSize: " ++ show size ++ " bytes\n")
+  let path = fGetPath file
+  let permissions = fShowPermissions file
+  let extension = takeExtension path
+  let date = fGetEditTime file
+  let size = fGetSize file
+  return ("Path: \"" ++ path ++
+   "\"\nPermissions: " ++ permissions ++
+   "\nExtension: \"" ++ extension ++
+   "\"\nLast updated: " ++ show date ++
+   "\nSize: " ++ show size ++ " bytes\n")
